@@ -1,0 +1,31 @@
+#!/bin/sh
+# bin/compile BUILD_DIR CACHE_DIR ENV_DIR
+
+set -u # stop on unset variables
+set -e # stop on error
+
+BUILD_DIR=${1:-}
+CACHE_DIR=${2:-}
+ENV_DIR=${3:-}
+BP_DIR=$(cd $(dirname ${0:-}); cd ..; pwd)
+
+VENDOR_DIR="$BUILD_DIR/vendor"
+
+CMAKE_VERSION="3.18.0"
+BASE_URL="https://cmake.org/files/v3.18"
+TARBALL="cmake-$CMAKE_VERSION-Linux-x86_64.tar.gz"
+TARBALL_PATH="/tmp/$TARBALL"
+
+
+echo "-----> Installing CMake version: $CMAKE_VERSION"
+
+echo "       Downloading and extracting binary distribution"
+mkdir -p "$VENDOR_DIR"
+curl $BASE_URL/$TARBALL -s -o - | tar -xvz -C "$VENDOR_DIR"
+mv "$VENDOR_DIR/cmake-$CMAKE_VERSION-Linux-x86_64" "$VENDOR_DIR/cmake"
+
+echo "       Exporting PATH"
+echo "export PATH=\"\$PATH:$VENDOR_DIR/cmake/bin\"" > $BP_DIR/export
+
+echo "       Testing binary"
+$VENDOR_DIR/cmake/bin/cmake --version
